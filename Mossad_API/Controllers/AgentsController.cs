@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Mossad_API.DAL;
 using Mossad_API.Moddels;
 using Newtonsoft.Json;
@@ -21,15 +22,37 @@ namespace Mossad_API.Controllers
         }
 
 
+        // Get all agents 
+
+        [HttpGet]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult getAllAgents()
+        {
+            return StatusCode(
+                StatusCodes.Status200OK,
+                new
+                {
+                    agents = _context.agents.Include(x => x._Location).ToList(),  
+
+                });       
+            
+        }
+
+
         // Create Agent
 
 
         [HttpPost]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public IActionResult CreateAgent(Agent agent)
+        public IActionResult CreateAgent(CreateAgentRequest createAgentRequest)
         {
-
+            //if (createAgentRequest == null) { }
+            
+            Agent agent = new Agent();  
+            agent.nickname = createAgentRequest.nickname;
+            agent.photo_url = createAgentRequest.photo_url; 
             agent.Status = AgentStatus.dormant;
             _context.agents.Add(agent);
             _context.SaveChanges();
@@ -44,9 +67,19 @@ namespace Mossad_API.Controllers
 
         [HttpPut("{id}/pin")]
         [Produces("application/json")]
-        public IActionResult UpdateStartingPosition(int id, Location location)
+        public IActionResult PinAgent(int id, Location location)
         {
             Agent agent = _context.agents.FirstOrDefault(x => x.id == id);
+
+            if (agent == null)
+            {
+                return StatusCode(
+                400,
+                new
+                {
+                    error = "The agent is invalid."
+                });
+            }
 
             agent._Location = location;
 
