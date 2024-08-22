@@ -4,7 +4,7 @@
     public enum MissionStatus
     {
         suggestion,
-        CommandForTheMission,
+        Assigned,
         ended
     }
 

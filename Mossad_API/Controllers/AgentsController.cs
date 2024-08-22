@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mossad_API.DAL;
 using Mossad_API.Moddels;
+using Mossad_API.Services;
 using Newtonsoft.Json;
 using System.Net.NetworkInformation;
 using System.Text;
@@ -33,10 +34,10 @@ namespace Mossad_API.Controllers
                 StatusCodes.Status200OK,
                 new
                 {
-                    agents = _context.agents.Include(x => x._Location).ToList(),  
+                    agents = _context.agents.Include(x => x._Location).ToList(),
 
-                });       
-            
+                });
+
         }
 
 
@@ -49,11 +50,12 @@ namespace Mossad_API.Controllers
         public IActionResult CreateAgent(CreateAgentRequest createAgentRequest)
         {
             //if (createAgentRequest == null) { }
-            
-            Agent agent = new Agent();  
+
+            Agent agent = new Agent();
             agent.nickname = createAgentRequest.nickname;
-            agent.photo_url = createAgentRequest.photo_url; 
+            agent.photo_url = createAgentRequest.photo_url;
             agent.Status = AgentStatus.dormant;
+
             _context.agents.Add(agent);
             _context.SaveChanges();
 
@@ -83,12 +85,47 @@ namespace Mossad_API.Controllers
 
             agent._Location = location;
 
+            CreateMissionsForAgent(agent);
+
+
             _context.Update(agent);
             _context.SaveChanges();
 
             return Ok();
         }
+
+        private void CreateMissionsForAgent(Agent agent)
+        {
+
+            List<Target> targets = _context.targets.Include(x => x._Location).Where(x => x.Status == TargetStatus.live).ToList();
+            // להוסיף בדיקה האם יש מטרות 
+            foreach (Target target in targets)
+            {
+                Double distance = Handler.GetDistance(target._Location, agent._Location);
+                if (distance < 200)
+                {
+                    Mission mission = new Mission();
+                    mission._agent = agent;
+                    mission._target = target;
+                    mission.Status = MissionStatus.Assigned;
+
+                    _context.missions.Add(mission);
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    Console.WriteLine("The command is illegal");
+                }
+
+            }
+        }
+
+
+
     }
 }
+
+
+
 
 

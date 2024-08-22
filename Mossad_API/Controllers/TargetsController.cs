@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mossad_API.DAL;
 using Mossad_API.Moddels;
+using Mossad_API.Services;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -48,7 +49,7 @@ namespace Mossad_API.Controllers
 
             Target target = new Target();
             target.name = createTargetRequest.name;
-            target.position = createTargetRequest.position; 
+            target.position = createTargetRequest.position;
             target.photo_url = createTargetRequest.photo_url;
             target.Status = TargetStatus.live;
             _context.targets.Add(target);
@@ -77,15 +78,45 @@ namespace Mossad_API.Controllers
                     error = "The target is invalid."
                 });
             }
-
             target._Location = location;
+
+            CreateMissionsForTarget(target);
 
             _context.Update(target);
             _context.SaveChanges();
 
             return Ok();
         }
+
+
+        private void CreateMissionsForTarget(Target target)
+        {
+            List<Agent> agents = _context.agents.Include(x => x._Location).Where(x => x.Status == AgentStatus.dormant).ToList();
+            // להוסיף בדיקה האם יש סוכנים
+            foreach (Agent agent in agents)
+            {
+                Double distance = Handler.GetDistance(target._Location, agent._Location);
+                if (distance < 200)
+                {
+                    Mission mission = new Mission();
+                    mission._agent = agent; 
+                    mission._target = target;
+                    mission.Status = MissionStatus.Assigned;
+
+                    _context.missions.Add(mission);
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    Console.WriteLine("The command is illegal");
+                }
+
+            }
+        }
     }
 }
+
+
+
 
 
