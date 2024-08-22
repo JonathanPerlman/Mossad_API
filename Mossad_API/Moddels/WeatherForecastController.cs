@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Mossad_API.Controllers
+namespace Mossad_API.Moddels
 {
     [ApiController]
     [Route("[controller]")]
