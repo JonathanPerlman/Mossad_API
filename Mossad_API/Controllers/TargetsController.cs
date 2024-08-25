@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Mossad_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class TargetsController : ControllerBase
     {
@@ -20,101 +20,178 @@ namespace Mossad_API.Controllers
             _context = context;
         }
 
-        // Get all targets 
-
+         
+        // פונקציה לקבלת רשימת המטרות
         [HttpGet]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult getAllTargets()
+        public async Task<IActionResult> GetAllTargets()
         {
-            return StatusCode(
-                StatusCodes.Status200OK,
-                new
-                {
-                    targets = _context.targets.Include(x => x._Location).ToList(),
+            try
+            {
+                return StatusCode(
+               StatusCodes.Status200OK,
+               new
+               {
+                   targets = await _context.targets.Include(x => x._Location).ToListAsync()
 
-                });
+               }) ;
+            }
+            catch
+            {
+                return StatusCode(500, new { error = "Connection failed" });
 
+            }
         }
 
-        // Create Target
-
-
+        // פונקציה ליצירת מטרה
         [HttpPost]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public IActionResult CreateTarget(CreateTargetRequest createTargetRequest)
+        public async Task<IActionResult> CreateTarget(CreateTargetRequest createTargetRequest)
         {
-            //if (createTargetRequest == null) { }
-
-            Target target = new Target();
-            target.name = createTargetRequest.name;
-            target.position = createTargetRequest.position;
-            target.photo_url = createTargetRequest.photo_url;
-            target.Status = TargetStatus.live;
-            _context.targets.Add(target);
-            _context.SaveChanges();
-
-            return StatusCode(
-            StatusCodes.Status201Created,
-            new { success = true, targetID = target.id }
-            );
-        }
-
-        // Update starting position
-
-        [HttpPut("{id}/pin")]
-        [Produces("application/json")]
-        public IActionResult PinTarget(int id, Location location)
-        {
-            Target target = _context.targets.FirstOrDefault(x => x.id == id);
-
-            if (target == null)
+            try
             {
-                return StatusCode(
-                400,
-                new
+                if (createTargetRequest != null)
                 {
-                    error = "The target is invalid."
-                });
-            }
-            target._Location = location;
+                    Target target = new Target();
+                    target.name = createTargetRequest.name;
+                    target.position = createTargetRequest.position;
+                    target.photo_url = createTargetRequest.photoUrl;
+                    target.Status = TargetStatus.Live;
+                    await _context.targets.AddAsync(target);
+                    _context.SaveChangesAsync();
 
-            CreateMissionsForTarget(target);
-
-            _context.Update(target);
-            _context.SaveChanges();
-
-            return Ok();
-        }
-
-
-        private void CreateMissionsForTarget(Target target)
-        {
-            List<Agent> agents = _context.agents.Include(x => x._Location).Where(x => x.Status == AgentStatus.dormant).ToList();
-            // להוסיף בדיקה האם יש סוכנים
-            foreach (Agent agent in agents)
-            {
-                Double distance = Handler.GetDistance(target._Location, agent._Location);
-                if (distance < 200)
-                {
-                    Mission mission = new Mission();
-                    mission._agent = agent; 
-                    mission._target = target;
-                    mission.Status = MissionStatus.Assigned;
-
-                    _context.missions.Add(mission);
-                    _context.SaveChanges();
+                    return StatusCode(
+                    StatusCodes.Status201Created,
+                    new { Id = target.id }
+                    );
                 }
                 else
                 {
-                    Console.WriteLine("The command is illegal");
+                    return StatusCode(400, new { error = "Invalid request" });
                 }
-
             }
+            catch
+            {
+                return StatusCode(500, new { error = "Connection failed" });
+            }
+        
+        }
+
+
+            
+
+        // עדכון מקום התחלתי למטרה
+
+        [HttpPut("{id}/pin")]
+        [Produces("application/json")]
+        public async Task <IActionResult>  PinTarget(int id, UpdateLocationRequest updateLocationRequest)
+        {
+            try
+            {
+                Target target = await _context.targets.Include(x => x._Location).FirstOrDefaultAsync(x => x.id == id);
+
+                if (target == null)
+                {
+                    return StatusCode(
+                    400,
+                    new
+                    {
+                        error = "The target is invalid."
+                    });
+                }
+                target._Location.x = updateLocationRequest.x;
+                target._Location.y = updateLocationRequest.y;
+
+                _context.Update(target);
+                await _context.SaveChangesAsync();
+
+                CreateMissionsForTarget(target);
+                return Ok();
+            }
+            catch
+            {
+                return StatusCode(500, new { error = "Connection failed" });
+            }
+        }
+
+        
+        [HttpPut("{id}/move")]
+        [Produces("application/json")]
+        public async Task<IActionResult> MoveTarget(int id, MoveRequest moveRequest)
+        {
+            try
+            {
+                Target target = await _context.targets.Include(x => x._Location).FirstOrDefaultAsync(x => x.id == id);   
+
+                if (target == null)
+                {
+                    return StatusCode(
+                    400,
+                    new
+                    {
+                        error = "The target is invalid."
+                    });
+                }
+                Location newLocation = Handler.CalculateLocation(target._Location, moveRequest.direction);
+
+                if(newLocation.x > 1000 || newLocation.y > 1000)
+                {
+                    return StatusCode(
+                400,
+                new
+                {
+                    error = "Agent cannot be moved  outside to the borders the matrix.",  location = target._Location
+                }); ;
+                }
+                target._Location = newLocation;
+                _context.Update(target);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch
+            {
+                return StatusCode(500, new { error = "Connection failed" });
+            }
+        }
+
+        private async Task CreateMissionsForTarget(Target target)
+        {
+          
+                List<Agent> agents = await _context.agents.Include(x => x._Location).Where(x => x.Status == AgentStatus.Dormant).ToListAsync();
+
+                if (agents != null && agents.Count > 0)
+                {
+                    foreach (Agent agent in agents)
+                    {
+                        Double distance = Handler.GetDistance(target._Location, agent._Location);
+                        if (distance < 200)
+                        {
+                            Mission mission = new Mission();
+                            mission._agent = agent;
+                            mission._target = target;
+                            mission.Status = MissionStatus.Suggestion;
+
+                            _context.missions.Add(mission);
+                            await _context.SaveChangesAsync();
+                        }
+
+                    }
+                }
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

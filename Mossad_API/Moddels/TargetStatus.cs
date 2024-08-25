@@ -2,8 +2,8 @@
 {
     public enum TargetStatus
     {
-        live,
-        eliminated
+        Live,
+        Eliminated
     }
 
 }

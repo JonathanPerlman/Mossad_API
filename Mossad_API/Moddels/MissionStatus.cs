@@ -3,9 +3,9 @@
 
     public enum MissionStatus
     {
-        suggestion,
+        Suggestion,
         Assigned,
-        ended
+        Ended
     }
 
 }

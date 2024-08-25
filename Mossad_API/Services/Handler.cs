@@ -18,36 +18,36 @@ namespace Mossad_API.Services
             switch (direction)
             {
                 case "nw":
-                    _location.x -= 1;
-                    _location.y += 1;
+                    _location.x = location.x -1;
+                    _location.y = location.y + 1;
                     break;
                 case "n":
-                    _location.x = _location.x;
-                    _location.y += 1;
+                    _location.x = location.x;
+                    _location.y = location.y + 1;
                     break;
                 case "ne":
-                    _location.x += 1;
-                    _location.y += 1;
+                    _location.x = location.x + 1;
+                    _location.y = location.x + 1;
                     break;
                 case "w":
-                    _location.x -= 1;
-                    _location.y = _location.y;   
+                    _location.x = location.x - 1;
+                    _location.y = location.y;   
                     break;
                 case "e":
-                    _location.x += 1;
-                    _location.y = _location.y;
+                    _location.x = location.x + 1;
+                    _location.y = location.y;
                     break;
                 case "sw":
-                    _location.x -= 1;
-                    _location.y -= 1;
+                    _location.x = location.x - 1;
+                    _location.y = location.y - 1 ;
                     break;
                 case "s":
-                    _location.x = _location.x;
-                    _location.y -= 1;
+                    _location.x = location.x;
+                    _location.y = location.y - 1;
                     break;
                 case "se":
-                    _location.x += 1;
-                    _location.y -= 1;
+                    _location.x = location.x + 1;
+                    _location.y = location.y - 1;
                     break;
             }
             return _location;
@@ -56,7 +56,7 @@ namespace Mossad_API.Services
 
 
 
-        public static string calculateDirection(Agent agent, Target target)
+        public static string CalculateDirection(Agent agent, Target target)
         {
             if (agent._Location.x > target._Location.x && agent._Location.y > target._Location.y)
             {
