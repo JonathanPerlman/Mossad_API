@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Mossad_API.Moddels;
 using Microsoft.EntityFrameworkCore;
+using Mossad_API.Moddels.DBModdels;
 
 namespace Mossad_API.DAL
 {

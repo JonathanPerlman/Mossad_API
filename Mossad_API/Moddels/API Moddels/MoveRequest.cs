@@ -2,7 +2,7 @@
 {
     public class MoveRequest
     {
-        public string token {  get; set; }
+        public string? token {  get; set; }
         public string direction { get; set; }   
     }
 }

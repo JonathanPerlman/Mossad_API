@@ -1,4 +1,4 @@
-﻿using Mossad_API.Moddels;
+﻿using Mossad_API.Moddels.DBModdels;
 
 namespace Mossad_API.Services
 {
@@ -6,7 +6,7 @@ namespace Mossad_API.Services
     {
         public static Double GetDistance(Location targetLocation, Location agentLocation)
         {
-            return Math.Sqrt(Math.Pow(targetLocation.x - agentLocation.x, 2) + Math.Pow(targetLocation.y - agentLocation.y, 2));
+            return Math.Sqrt(Math.Pow(targetLocation.X - agentLocation.X, 2) + Math.Pow(targetLocation.Y - agentLocation.Y, 2));
 
         }
 
@@ -18,36 +18,36 @@ namespace Mossad_API.Services
             switch (direction)
             {
                 case "nw":
-                    _location.x = location.x -1;
-                    _location.y = location.y + 1;
+                    _location.X = location.X -1;
+                    _location.Y = location.Y + 1;
                     break;
                 case "n":
-                    _location.x = location.x;
-                    _location.y = location.y + 1;
+                    _location.X = location.X;
+                    _location.Y = location.Y + 1;
                     break;
                 case "ne":
-                    _location.x = location.x + 1;
-                    _location.y = location.x + 1;
+                    _location.X = location.X + 1;
+                    _location.Y = location.Y + 1;
                     break;
                 case "w":
-                    _location.x = location.x - 1;
-                    _location.y = location.y;   
+                    _location.X = location.X - 1;
+                    _location.Y = location.Y;   
                     break;
                 case "e":
-                    _location.x = location.x + 1;
-                    _location.y = location.y;
+                    _location.X = location.X + 1;
+                    _location.Y = location.Y;
                     break;
                 case "sw":
-                    _location.x = location.x - 1;
-                    _location.y = location.y - 1 ;
+                    _location.X = location.X - 1;
+                    _location.Y = location.Y - 1 ;
                     break;
                 case "s":
-                    _location.x = location.x;
-                    _location.y = location.y - 1;
+                    _location.X = location.X;
+                    _location.Y = location.Y - 1;
                     break;
                 case "se":
-                    _location.x = location.x + 1;
-                    _location.y = location.y - 1;
+                    _location.X = location.X + 1;
+                    _location.Y = location.Y - 1;
                     break;
             }
             return _location;
@@ -58,36 +58,36 @@ namespace Mossad_API.Services
 
         public static string CalculateDirection(Agent agent, Target target)
         {
-            if (agent._Location.x > target._Location.x && agent._Location.y > target._Location.y)
+            if (agent._Location.X > target._Location.X && agent._Location.Y > target._Location.Y)
             {
                 return "nw";
             }
 
-            if (agent._Location.x == target._Location.x && agent._Location.y < target._Location.y)
+            if (agent._Location.X == target._Location.X && agent._Location.Y < target._Location.Y)
             {
                 return "n";
             }
-            if (agent._Location.x < target._Location.y && agent._Location.y < target._Location.y)
+            if (agent._Location.X < target._Location.X && agent._Location.Y < target._Location.Y)
             {
                 return "ne";
             }
-            if (agent._Location.y == target._Location.y && agent._Location.x > target._Location.x)
+            if (agent._Location.Y == target._Location.Y && agent._Location.X > target._Location.X)
             {
                 return "w";
             }
-            if (agent._Location.y == target._Location.y && agent._Location.x < target._Location.x)
+            if (agent._Location.Y == target._Location.Y && agent._Location.X < target._Location.X)
             {
                 return "e";
             }
-            if (agent._Location.x > target._Location.x && agent._Location.y > target._Location.y)
+            if (agent._Location.X > target._Location.X && agent._Location.Y > target._Location.Y)
             {
                 return "sw";
             }
-            if (agent._Location.x == target._Location.x && agent._Location.y > target._Location.y)
+            if (agent._Location.X == target._Location.X && agent._Location.Y > target._Location.Y)
             {
                 return "s";
             }
-            if (agent._Location.x < target._Location.x && agent._Location.y > target._Location.y)
+            if (agent._Location.X < target._Location.X && agent._Location.Y > target._Location.Y)
             {
                 return "se";
             }

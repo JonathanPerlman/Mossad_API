@@ -1,4 +1,4 @@
-﻿namespace Mossad_API.Moddels
+﻿namespace Mossad_API.Moddels.Enums
 {
 
     public enum AgentStatus
