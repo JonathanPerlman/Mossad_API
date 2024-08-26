@@ -8,6 +8,7 @@ using Mossad_API.Moddels.DBModdels;
 using Mossad_API.Moddels.Enums;
 using Mossad_API.Services;
 using System;
+using System.Reflection;
 
 namespace Mossad_API.Controllers
 {
@@ -48,6 +49,35 @@ namespace Mossad_API.Controllers
             return StatusCode(
               StatusCodes.Status200OK,
               new { missions }
+              );
+        }
+
+
+
+
+        // פונקציה המקבלת משימה אחת לפי הid
+        // הפונקציה היא עבור הmvc והתצוגה
+        [HttpGet("GetMissionDetails/{id}")]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetMissionDetails(int id)
+        {
+            GetMissionResponse getMissionResponse = await _context.missions.Include(x => x._agent).ThenInclude(x => x._Location).Include(x => x._target).ThenInclude(x => x._Location).Select(
+                x => new GetMissionResponse()
+                {
+                    Id = x.Id,
+                    AgentName = x._agent.nickname,
+                    AgentX = x._agent._Location.X,
+                    AgentY = x._agent._Location.Y,
+                    TargetName = x._target.name,
+                    TargetX = x._target._Location.X,
+                    TaregtY = x._target._Location.Y,
+                    Distance = Handler.GetDistance(x._target._Location, x._agent._Location),
+                    TimeLeft = x.TimeLeft
+                }).FirstOrDefaultAsync(x=> x.Id == id);
+            return StatusCode(
+              StatusCodes.Status200OK,
+              new { getMissionResponse }
               );
         }
 
@@ -150,7 +180,7 @@ namespace Mossad_API.Controllers
 
                 // חישוב המרחק החדש על-ידי שליחה של המיקום החדש של הסוכן + המיקום של המטרה
                 Double newDistance = Handler.GetDistance(newLocation, mission._target._Location);
-                // חישוב הזמן הנותר על-ידי חלוקה ב5
+                // חישוב הזמן הנותר  על-ידי חלוקה ב5
                 Double timeLeft = newDistance / 5;
 
                 // אם המרחק החדש הוא 0 - דהיינו הם על אותו מקןם מתבצעת קריאה לםונקציה שמחסלת את המטרה
@@ -167,7 +197,7 @@ namespace Mossad_API.Controllers
             }
         }
 
-
+        //
 
 
         // פונקציה למחיקת משימה
@@ -176,16 +206,20 @@ namespace Mossad_API.Controllers
             // שליפה מהדאטה מטבלת המשימות של כל המשימות המקושרות לסוכן לפי
             // הid שהתקבל
             // וכשהסטטוס של המשימה לא בציוות
+
             List<Mission> deleteMissionsForAgent = await _context.missions.Include(x => x._agent).Where(x => x._agent.id == agendId && x.Status != MissionStatus.Assigned).ToListAsync();
 
             // שליפה מהדאטה מטבלת המשימות של כל המשימות המקושרות למטרה לפי
             // הid שהתקבל
             // וכשהסטטוס של המשימה לא בציוות
+
             List<Mission> deleteMissionsForTarget = await _context.missions.Include(x => x._target).Where(x => x._target.id == agendId && x.Status != MissionStatus.Assigned).ToListAsync();
 
             // מחיקת המשימות עבור הסוכן
+
             _context.missions.RemoveRange(deleteMissionsForAgent);
             // מחיקת המשימות עבור המטרה
+
             _context.missions.RemoveRange(deleteMissionsForTarget);
 
 
@@ -200,10 +234,12 @@ namespace Mossad_API.Controllers
         private async void KillTarget(Mission mission)
         {
             // עדכון סטטוס המטרה לחוסל,סטטוס הסוכן לרדום, וסטטוס המשימה להסתיימה
+
             mission._target.Status = TargetStatus.Eliminated;
             mission._agent.Status = AgentStatus.Dormant;
             mission.Status = MissionStatus.Ended;
             // עדכון ושמירת הנתונים
+
             _context?.missions.Update(mission);
 
             await _context.SaveChangesAsync();
