@@ -144,7 +144,7 @@ namespace Mossad_API.Controllers
                 Location newLocation = Handler.CalculateLocation(target._Location, moveRequest.direction);
                 // אם המיקום החדש מחוץ לגבולות המטריצה חוזרת שגיאה מתאימה + המיקום 
 
-                if (newLocation.X > 1000 || newLocation.Y > 1000)
+                if (newLocation.X > 1000 || newLocation.Y > 1000 || newLocation.X < 0 || newLocation.Y < 0)
                 {
                     return StatusCode(
                 400,

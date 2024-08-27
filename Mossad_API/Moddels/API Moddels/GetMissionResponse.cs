@@ -1,4 +1,6 @@
-﻿namespace Mossad_API.Moddels.API_Moddels
+﻿using Mossad_API.Moddels.Enums;
+
+namespace Mossad_API.Moddels.API_Moddels
 {
     public class GetMissionResponse
     {
@@ -10,7 +12,9 @@
         public Double TargetX { get; set; }
         public Double TaregtY { get; set; }
         public Double Distance { get; set; }
-
+        public MissionStatus? Status { get; set; }
         public Double? TimeLeft { get; set; }
     }
 }
+
+

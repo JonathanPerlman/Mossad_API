@@ -155,7 +155,7 @@ namespace Mossad_API.Controllers
                 // קריאה לפונקציה שמזיזה את הסוכן לפי מיקומו והכיוון שהתקבל 
                 Location newLocation = Handler.CalculateLocation(agent._Location, moveRequest.direction);
                 // אם המיקום החדש מחוץ לגבולות המטריצה חוזרת שגיאה מתאימה + המיקום 
-                if (newLocation.X > 1000 || newLocation.Y > 1000)
+                if (newLocation.X > 1000 || newLocation.Y > 1000 || newLocation.X < 0 || newLocation.Y < 0)
                 {
                     return StatusCode(
                 400,
@@ -163,7 +163,7 @@ namespace Mossad_API.Controllers
                 {
                     error = "Agent cannot be moved  outside to the borders the matrix.",
                     location = agent._Location
-                }); ;
+                }); 
                 }
                 // עדכון המיקום החדש + עדכון בדאטה + שמירה
                 agent._Location = newLocation;

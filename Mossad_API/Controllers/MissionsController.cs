@@ -43,12 +43,13 @@ namespace Mossad_API.Controllers
                     TargetX = x._target._Location.X,
                     TaregtY = x._target._Location.Y,
                     Distance = Handler.GetDistance(x._target._Location, x._agent._Location),
+                    Status = MissionStatus.Suggestion,
                     TimeLeft = x.TimeLeft
                 }).ToListAsync();
             // שליחת הליסט 
             return StatusCode(
               StatusCodes.Status200OK,
-              new { missions }
+              missions 
               );
         }
 
@@ -77,7 +78,7 @@ namespace Mossad_API.Controllers
                 }).FirstOrDefaultAsync(x=> x.Id == id);
             return StatusCode(
               StatusCodes.Status200OK,
-              new { getMissionResponse }
+              getMissionResponse
               );
         }
 
@@ -172,7 +173,11 @@ namespace Mossad_API.Controllers
                 string direction = Handler.CalculateDirection(mission._agent, mission._target);
                 // עדכון המיקום על-ידי שליחת הסוכן + הכיוון שעליו לנוע
                 Location newLocation = Handler.CalculateLocation(mission._agent._Location, direction);
-
+                // בדיקה אם המיקום מחוץ לגבולות המטריצה
+                if (newLocation.X > 1000 || newLocation.Y > 1000 || newLocation.X < 0 || newLocation.Y < 0)
+                {
+                    return;
+                }
                 // עדכון הסוכן בדאטה
                 _context.agents.Update(agent);
                 // שינוי המיקום ע"פ המיקום החדש שמגיע
@@ -182,7 +187,7 @@ namespace Mossad_API.Controllers
                 Double newDistance = Handler.GetDistance(newLocation, mission._target._Location);
                 // חישוב הזמן הנותר  על-ידי חלוקה ב5
                 Double timeLeft = newDistance / 5;
-
+                mission.TimeLeft = timeLeft;
                 // אם המרחק החדש הוא 0 - דהיינו הם על אותו מקןם מתבצעת קריאה לםונקציה שמחסלת את המטרה
                 if (newDistance == 0)
                 {
@@ -190,7 +195,6 @@ namespace Mossad_API.Controllers
                 }
                 else
                 {
-                    mission.TimeLeft = timeLeft;
                     _context.missions.Update(mission);
                     await _context.SaveChangesAsync();
                 }
@@ -231,7 +235,7 @@ namespace Mossad_API.Controllers
 
 
         // פונקציה לחיסול המטרה
-        private async void KillTarget(Mission mission)
+        private async Task KillTarget(Mission mission)
         {
             // עדכון סטטוס המטרה לחוסל,סטטוס הסוכן לרדום, וסטטוס המשימה להסתיימה
 

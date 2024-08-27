@@ -17,7 +17,7 @@ namespace Mossad_API.Middleware
         }
         public async Task Invoke(HttpContext context)
         {
-            //LoginResponse login = JsonConvert.DeserializeObject<LoginResponse>(context.Request.Body.ToString());
+
         }
     }
 
